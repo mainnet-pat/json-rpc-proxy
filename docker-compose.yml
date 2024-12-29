@@ -1,0 +1,10 @@
+services:
+  json-rpc-proxy:
+    build: .
+    ports:
+      - '127.0.0.1:8000:8000'
+    environment:
+      HOST: "localhost"
+      PORT: "80"
+      ALLOWED_METHODS: ""
+    restart: always
