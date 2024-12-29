@@ -17,6 +17,14 @@ if (!allowedMethods.length) {
 }
 
 app.post("*", (req: any, res) => {
+  if (!req.body?.method) {
+    res.status(200).send({
+      id: null,
+      error: {"code": -1, "message": "Wrong post body"},
+      result: null,
+    })
+  }
+
   if (!allowedMethods.includes(req.body.method)) {
     res.status(200).send({
       id: req.body.id,
