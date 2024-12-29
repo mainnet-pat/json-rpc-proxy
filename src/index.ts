@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const port = Number(process.env.PORT || 443);
-const proto = port ? https : http;
+const proto = port === 443 ? https : http;
 const allowedMethods = process.env.ALLOWED_METHODS ? process.env.ALLOWED_METHODS.split(",") : [];
 if (!allowedMethods.length) {
   console.error("No allowed methods provided");
