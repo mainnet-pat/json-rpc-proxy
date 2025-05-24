@@ -6,5 +6,6 @@ services:
     environment:
       HOST: "localhost"
       PORT: "80"
-      ALLOWED_METHODS: ""
+      ALLOWED_METHODS: "*"
+      AUTHORIZATION_HEADER_OVERRIDE: "" # Optional, set to override the Authorization header, e.g., "Basic B64string="
     restart: always

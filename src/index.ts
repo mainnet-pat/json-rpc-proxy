@@ -10,9 +10,10 @@ app.use(express.json());
 
 const port = Number(process.env.PORT || 443);
 const proto = port === 443 ? https : http;
-const allowedMethods = process.env.ALLOWED_METHODS ? process.env.ALLOWED_METHODS.split(",") : [];
-if (!allowedMethods.length) {
-  console.error("No allowed methods provided");
+const allowAll = process.env.ALLOWED_METHODS === "*";
+const allowedMethods = process.env.ALLOWED_METHODS ? process.env.ALLOWED_METHODS?.split(",") : [];
+if (!allowAll && !allowedMethods.length) {
+  console.error("No allowed json rpc methods provided, specify \"*\" to allow all methods or a comma-separated list of methods in the ALLOWED_METHODS environment variable.");
   process.exit(1);
 }
 
@@ -25,13 +26,19 @@ app.post("*", (req: any, res) => {
     })
   }
 
-  if (!allowedMethods.includes(req.body.method)) {
-    res.status(200).send({
-      id: req.body.id,
-      error: {"code": -90, "message": "Method disabled"},
-      result: null,
-    })
+  if (!allowAll) {
+    if (!allowedMethods.includes(req.body.method)) {
+      res.status(200).send({
+        id: req.body.id,
+        error: {"code": -90, "message": "Method disabled"},
+        result: null,
+      })
+
+      return;
+    }
   }
+
+  const authorizationHeader = process.env.AUTHORIZATION_HEADER_OVERRIDE || req.headers.authorization;
 
   const connector = proto.request({
     port: port,
@@ -39,9 +46,9 @@ app.post("*", (req: any, res) => {
     path: req.url,
     method: req.method,
     headers: {
-      "authorization": req.headers.authorization,
       "host": process.env.HOST,
       "content-length": req.headers["content-length"],
+      ...(authorizationHeader ? {"authorization": authorizationHeader} : {}),
     } as any,
   }, (resp: any) => {
     resp.pipe(res);
@@ -53,5 +60,5 @@ app.post("*", (req: any, res) => {
   return req.pipe(connector);
 });
 
-console.log("Service started with allowed methods: ", allowedMethods);
+console.log("Service started at 'localhost:8000' with allowed methods: ", allowedMethods);
 app.listen(8000);
