@@ -11,7 +11,7 @@ app.use(express.json());
 const port = Number(process.env.PORT || 443);
 const proto = port === 443 ? https : http;
 const allowAll = process.env.ALLOWED_METHODS === "*";
-const allowedMethods = process.env.ALLOWED_METHODS ? process.env.ALLOWED_METHODS?.split(",") : [];
+const allowedMethods = process.env.ALLOWED_METHODS ? process.env.ALLOWED_METHODS?.split(",").map(method => method.trim()) : [];
 if (!allowAll && !allowedMethods.length) {
   console.error("No allowed json rpc methods provided, specify \"*\" to allow all methods or a comma-separated list of methods in the ALLOWED_METHODS environment variable.");
   process.exit(1);
@@ -30,7 +30,7 @@ app.post("*", (req: any, res) => {
     if (!allowedMethods.includes(req.body.method)) {
       res.status(200).send({
         id: req.body.id,
-        error: {"code": -90, "message": "Method disabled"},
+        error: {"code": -90, "message": "Method disabled. Allowed methods: " + process.env.ALLOWED_METHODS},
         result: null,
       })
 
